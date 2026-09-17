@@ -1,0 +1,19 @@
+{
+  "domain": "nexus_fotovoltaico",
+  "name": "Nexus Fotovoltaico",
+  "codeowners": [
+    "@Pacco24626"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "frontend",
+    "lovelace"
+  ],
+  "documentation": "https://github.com/Pacco24626/nexus_fotovoltaico",
+  "integration_type": "device",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/Pacco24626/nexus_fotovoltaico/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

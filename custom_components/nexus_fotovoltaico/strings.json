@@ -1,0 +1,156 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Impianto fotovoltaico",
+        "description": "Collega le entita' dell'impianto: il modulo propone quelle riconosciute dal nome. Nasce un dispositivo con il sensore «Mappa impianto», da indicare nella card, e con «Autoconsumo», «Verso rete» e «Verso batteria» quando ci sono le entita' per calcolarli.",
+        "data": {
+          "nome": "Nome"
+        },
+        "sections": {
+          "potenze": {
+            "name": "Potenze",
+            "description": "La produzione e' obbligatoria. Con lo scambio con la rete la card mostra il verso, e l'autoconsumo e' esatto anche con una batteria.",
+            "data": {
+              "produzione": "Produzione fotovoltaica",
+              "consumo": "Consumo dell'abitazione",
+              "scambio_rete": "Scambio con la rete"
+            },
+            "data_description": {
+              "consumo": "Senza scambio con la rete, l'autoconsumo si calcola da qui."
+            }
+          },
+          "energie": {
+            "name": "Energie",
+            "description": "Facoltative: compaiono come riquadri nel disegno.",
+            "data": {
+              "giornaliera": "Produzione di oggi",
+              "prelevata": "Energia prelevata",
+              "immessa": "Energia immessa"
+            }
+          },
+          "accumulo": {
+            "name": "Accumulo",
+            "description": "Solo se c'e' una batteria: il blocco dell'accumulo compare nel disegno solo se colleghi almeno una di queste.",
+            "data": {
+              "batteria": "Potenza della batteria",
+              "soc": "Stato di carica"
+            }
+          },
+          "convenzioni": {
+            "name": "Convenzioni",
+            "description": "Come conta il contatore. La proposta viene dai valori di adesso: senza batteria, lo scambio ha lo stesso segno di produzione meno consumo.",
+            "data": {
+              "segno_rete": "Scambio con la rete",
+              "segno_batteria": "Potenza della batteria"
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "manca_produzione": "La produzione fotovoltaica e' obbligatoria.",
+      "entita_ripetuta": "La stessa entita' e' scelta per due voci diverse."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Entita', convenzioni e animazione",
+        "description": "Cambia le entita' collegate, le convenzioni del contatore o il fondo scala delle animazioni. Il nome si cambia rinominando la voce.",
+        "sections": {
+          "potenze": {
+            "name": "Potenze",
+            "description": "La produzione e' obbligatoria. Con lo scambio con la rete la card mostra il verso, e l'autoconsumo e' esatto anche con una batteria.",
+            "data": {
+              "produzione": "Produzione fotovoltaica",
+              "consumo": "Consumo dell'abitazione",
+              "scambio_rete": "Scambio con la rete"
+            },
+            "data_description": {
+              "consumo": "Senza scambio con la rete, l'autoconsumo si calcola da qui."
+            }
+          },
+          "energie": {
+            "name": "Energie",
+            "description": "Facoltative: compaiono come riquadri nel disegno.",
+            "data": {
+              "giornaliera": "Produzione di oggi",
+              "prelevata": "Energia prelevata",
+              "immessa": "Energia immessa"
+            }
+          },
+          "accumulo": {
+            "name": "Accumulo",
+            "description": "Solo se c'e' una batteria: il blocco dell'accumulo compare nel disegno solo se colleghi almeno una di queste.",
+            "data": {
+              "batteria": "Potenza della batteria",
+              "soc": "Stato di carica"
+            }
+          },
+          "convenzioni": {
+            "name": "Convenzioni",
+            "description": "Come conta il contatore. La proposta viene dai valori di adesso: senza batteria, lo scambio ha lo stesso segno di produzione meno consumo.",
+            "data": {
+              "segno_rete": "Scambio con la rete",
+              "segno_batteria": "Potenza della batteria"
+            }
+          },
+          "animazione": {
+            "name": "Animazione",
+            "data": {
+              "riferimento": "Potenza di fondo scala"
+            },
+            "data_description": {
+              "riferimento": "La potenza oltre la quale il flusso disegnato non corre piu' veloce."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "manca_produzione": "La produzione fotovoltaica e' obbligatoria.",
+      "entita_ripetuta": "La stessa entita' e' scelta per due voci diverse."
+    }
+  },
+  "selector": {
+    "segno_rete": {
+      "options": {
+        "immissione_positiva": "Positivo quando immetto in rete",
+        "prelievo_positivo": "Positivo quando prelevo dalla rete"
+      }
+    },
+    "segno_batteria": {
+      "options": {
+        "carica_positiva": "Positivo quando la batteria si carica",
+        "scarica_positiva": "Positivo quando la batteria si scarica"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "mappa": {
+        "name": "Mappa impianto"
+      },
+      "autoconsumo": {
+        "name": "Autoconsumo"
+      },
+      "verso_rete": {
+        "name": "Verso rete",
+        "state": {
+          "immissione": "Immissione",
+          "prelievo": "Prelievo",
+          "fermo": "Fermo"
+        }
+      },
+      "verso_batteria": {
+        "name": "Verso batteria",
+        "state": {
+          "carica": "In carica",
+          "scarica": "In scarica",
+          "fermo": "Ferma"
+        }
+      }
+    }
+  }
+}

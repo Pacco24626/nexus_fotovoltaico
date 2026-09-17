@@ -1,0 +1,156 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Photovoltaic plant",
+        "description": "Link the plant entities: the form suggests the ones recognised by name. A device is created with the «Plant map» sensor, to use in the card, plus «Self-consumption», «Grid direction» and «Battery direction» when the entities to compute them are there.",
+        "data": {
+          "nome": "Name"
+        },
+        "sections": {
+          "potenze": {
+            "name": "Power",
+            "description": "PV production is required. With the grid exchange the card shows the direction, and self-consumption is exact even with a battery.",
+            "data": {
+              "produzione": "PV production",
+              "consumo": "House consumption",
+              "scambio_rete": "Grid exchange"
+            },
+            "data_description": {
+              "consumo": "Without the grid exchange, self-consumption is computed from this."
+            }
+          },
+          "energie": {
+            "name": "Energy",
+            "description": "Optional: shown as boxes in the drawing.",
+            "data": {
+              "giornaliera": "Today's production",
+              "prelevata": "Energy imported",
+              "immessa": "Energy exported"
+            }
+          },
+          "accumulo": {
+            "name": "Storage",
+            "description": "Only with a battery: the storage block is drawn only if at least one of these is linked.",
+            "data": {
+              "batteria": "Battery power",
+              "soc": "State of charge"
+            }
+          },
+          "convenzioni": {
+            "name": "Sign conventions",
+            "description": "How your meter counts. The suggestion comes from the current values: without a battery, the exchange has the same sign as production minus consumption.",
+            "data": {
+              "segno_rete": "Grid exchange",
+              "segno_batteria": "Battery power"
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "manca_produzione": "PV production is required.",
+      "entita_ripetuta": "The same entity is selected for two different fields."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Entities, conventions and animation",
+        "description": "Change the linked entities, the meter conventions or the animation full scale. Rename the entry to change its name.",
+        "sections": {
+          "potenze": {
+            "name": "Power",
+            "description": "PV production is required. With the grid exchange the card shows the direction, and self-consumption is exact even with a battery.",
+            "data": {
+              "produzione": "PV production",
+              "consumo": "House consumption",
+              "scambio_rete": "Grid exchange"
+            },
+            "data_description": {
+              "consumo": "Without the grid exchange, self-consumption is computed from this."
+            }
+          },
+          "energie": {
+            "name": "Energy",
+            "description": "Optional: shown as boxes in the drawing.",
+            "data": {
+              "giornaliera": "Today's production",
+              "prelevata": "Energy imported",
+              "immessa": "Energy exported"
+            }
+          },
+          "accumulo": {
+            "name": "Storage",
+            "description": "Only with a battery: the storage block is drawn only if at least one of these is linked.",
+            "data": {
+              "batteria": "Battery power",
+              "soc": "State of charge"
+            }
+          },
+          "convenzioni": {
+            "name": "Sign conventions",
+            "description": "How your meter counts. The suggestion comes from the current values: without a battery, the exchange has the same sign as production minus consumption.",
+            "data": {
+              "segno_rete": "Grid exchange",
+              "segno_batteria": "Battery power"
+            }
+          },
+          "animazione": {
+            "name": "Animation",
+            "data": {
+              "riferimento": "Full-scale power"
+            },
+            "data_description": {
+              "riferimento": "The power above which the drawn flow does not run any faster."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "manca_produzione": "PV production is required.",
+      "entita_ripetuta": "The same entity is selected for two different fields."
+    }
+  },
+  "selector": {
+    "segno_rete": {
+      "options": {
+        "immissione_positiva": "Positive when exporting to the grid",
+        "prelievo_positivo": "Positive when importing from the grid"
+      }
+    },
+    "segno_batteria": {
+      "options": {
+        "carica_positiva": "Positive when the battery charges",
+        "scarica_positiva": "Positive when the battery discharges"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "mappa": {
+        "name": "Plant map"
+      },
+      "autoconsumo": {
+        "name": "Self-consumption"
+      },
+      "verso_rete": {
+        "name": "Grid direction",
+        "state": {
+          "immissione": "Exporting",
+          "prelievo": "Importing",
+          "fermo": "Idle"
+        }
+      },
+      "verso_batteria": {
+        "name": "Battery direction",
+        "state": {
+          "carica": "Charging",
+          "scarica": "Discharging",
+          "fermo": "Idle"
+        }
+      }
+    }
+  }
+}
