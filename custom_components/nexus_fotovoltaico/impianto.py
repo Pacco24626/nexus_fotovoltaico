@@ -12,12 +12,15 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity_registry import EVENT_ENTITY_REGISTRY_UPDATED
 from homeassistant.helpers.event import async_track_state_change_event
 
 from .const import (
     CARICA_POSITIVA,
     CONF_ENTITA,
+    DOMAIN,
     CONF_RIFERIMENTO,
     CONF_SEGNO_BATTERIA,
     CONF_SEGNO_RETE,
@@ -39,6 +42,7 @@ class Impianto:
         self.derivate: dict[str, Any] = {"verso_rete": None, "verso_batteria": None, "autoconsumo": None}
         self._ascoltatori: list[Callable[[], None]] = []
         self._annulla: list[Callable[[], None]] = []
+        self._sparite: list[str] = []
 
     # -------------------------------------------------------------------------
     @property
@@ -83,6 +87,9 @@ class Impianto:
             self._annulla.append(async_track_state_change_event(self.hass, ids, self._al_cambio))
         self._annulla.append(self.hass.bus.async_listen(EVENT_ENTITY_REGISTRY_UPDATED, self._al_registro))
         self._ricalcola()
+        # Il ritiro puo' essere successo mentre Home Assistant era spento: qui
+        # non c'e' nessun evento da aspettare, si guarda e basta.
+        self._avvisa()
 
     async def async_stop(self) -> None:
         while self._annulla:
@@ -121,6 +128,57 @@ class Impianto:
         self.derivate = nuove
         return True
 
+    def _senza_entita(self) -> list[str]:
+        """Le voci la cui entita' non e' piu' nel registro di Home Assistant.
+
+        Si guarda il REGISTRO, non gli stati. All'avvio un'entita' puo' non
+        avere ancora uno stato - MQTT che non e' pronto - e un avviso li'
+        sarebbe un falso allarme che insegna a ignorare gli avvisi. Dal
+        registro una voce sparisce solo quando viene tolta davvero: dalla
+        V0.8.63 e' il gateway che ritira le entita' dell'energia quando il
+        modulo viene spento. Un'entita' DISABILITATA dall'utente resta nel
+        registro, quindi non fa scattare niente: e' una sua scelta.
+        """
+        registro = er.async_get(self.hass)
+        return sorted(
+            chiave for chiave, entity_id in self.entita.items()
+            if registro.async_get(entity_id) is None
+        )
+
+    @callback
+    def _avvisa(self) -> None:
+        """Apre o chiude l'avviso sulle voci rimaste senza entita'.
+
+        Un messaggio solo, che le elenca tutte: col modulo energia spento
+        spariscono insieme, obbligatoria compresa, e due messaggi diversi per
+        lo stesso fatto sarebbero due cose da leggere invece di una.
+
+        Non si sgancia niente da solo: una voce di configurazione e' di chi ha
+        installato, e toglierla di nascosto gli leverebbe anche il modo di
+        accorgersi che l'impianto e' cambiato. Se l'entita' torna, il
+        collegamento e' ancora al suo posto e l'avviso si chiude da se'.
+        """
+        sparite = self._senza_entita()
+        if sparite == self._sparite:
+            return
+        self._sparite = sparite
+        chiave = f"entita_sparite_{self.entry.entry_id}"
+        if not sparite:
+            ir.async_delete_issue(self.hass, DOMAIN, chiave)
+            return
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            chiave,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="entita_sparite",
+            translation_placeholders={
+                "nome": self.entry.title,
+                "voci": ", ".join(sparite),
+            },
+        )
+
     @callback
     def _al_cambio(self, _evento: Event) -> None:
         if self._ricalcola():
@@ -129,9 +187,18 @@ class Impianto:
 
     @callback
     def _al_registro(self, evento: Event) -> None:
-        """Un'entita' collegata rinominata: si aggiorna il collegamento, non si perde."""
+        """Il registro si muove: un rinomino si segue, una sparizione si dice.
+
+        Sono due cose diverse e vanno tenute diverse: chi rinomina un'entita'
+        vuole che il collegamento la segua, chi se la vede togliere vuole
+        saperlo.
+        """
         dati = evento.data
-        if dati.get("action") != "update" or "old_entity_id" not in dati:
+        azione = dati.get("action")
+        if azione in ("remove", "create") and dati.get("entity_id") in set(self.entita.values()):
+            self._avvisa()
+            return
+        if azione != "update" or "old_entity_id" not in dati:
             return
         nuove = rinomina(self.entita, dati["old_entity_id"], dati["entity_id"])
         if nuove is None:

@@ -162,9 +162,43 @@ class Registro:
                 return voce.entity_id
         return None
 
+    def async_get(self, entity_id: str):
+        """La voce di registro, o None: e' cosi' che si sa se un'entita' esiste ancora."""
+        return self.entities.get(entity_id)
+
     def async_remove(self, entity_id: str) -> None:
         self.entities.pop(entity_id, None)
         self.rimosse.append(entity_id)
+
+
+class Avvisi:
+    """Gli avvisi di riparazione aperti, come li vede chi li apre."""
+
+    def __init__(self) -> None:
+        self.aperti: dict = {}
+        self.chiusi: list = []
+
+
+class _Gravita:
+    WARNING = "warning"
+    ERROR = "error"
+
+
+def _apri_avviso(hass, dominio, chiave, **dati):
+    hass.avvisi.aperti[(dominio, chiave)] = dati
+
+
+def _chiudi_avviso(hass, dominio, chiave):
+    hass.avvisi.aperti.pop((dominio, chiave), None)
+    hass.avvisi.chiusi.append((dominio, chiave))
+
+
+_modulo(
+    "homeassistant.helpers.issue_registry",
+    async_create_issue=_apri_avviso,
+    async_delete_issue=_chiudi_avviso,
+    IssueSeverity=_Gravita,
+)
 
 
 _modulo(
@@ -349,6 +383,7 @@ class ConfigEntries:
 class Hass:
     def __init__(self) -> None:
         self.registro = Registro()
+        self.avvisi = Avvisi()
         self.stati = Stati()
         self.states = self.stati
         self.bus = Bus()

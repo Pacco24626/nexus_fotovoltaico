@@ -14,7 +14,7 @@
  * Le funzioni di calcolo sono esportate e si provano a tavolino: tests/test_card.mjs
  */
 
-const VERSIONE_CARD = "1.0.0";
+const VERSIONE_CARD = "1.1.0";
 const DOMINIO = "nexus_fotovoltaico";
 const RUOLO_MAPPA = "mappa_fotovoltaico";
 const NOME_INTEGRAZIONE = "Nexus Fotovoltaico";
@@ -710,6 +710,9 @@ class NexusFotovoltaicoCard extends HTMLElement {
   _apri(slot) {
     const id = this._entita()[slot];
     if (!id) return;
+    // Un'entita' ritirata dal gateway non ha piu' una finestra da aprire: il
+    // dialogo verrebbe su vuoto e sembrerebbe un guasto della scheda.
+    if (!this._hass || !this._hass.states[id]) return;
     this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: id }, bubbles: true, composed: true }));
   }
 

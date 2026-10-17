@@ -67,7 +67,27 @@ v("senza mappe: stringa vuota", trovaMappa({ states: {} }) === "");
 v("ruolo della mappa", RUOLO_MAPPA === "mappa_fotovoltaico");
 v("la card si registra col suo nome", Boolean(definite["nexus-fotovoltaico-card"]) && Boolean(definite["nexus-fotovoltaico-card-editor"]));
 v("e si annuncia nel selettore delle card", window.customCards.some((c) => c.type === "nexus-fotovoltaico-card" && c.preview === true));
-v("versione della card allineata al manifest", VERSIONE_CARD === "1.0.0");
+v("versione della card allineata al manifest", VERSIONE_CARD === "1.1.0");
+
+console.log("\nVoci ritirate dal gateway");
+{
+  // Il clic su una voce apre la finestra informazioni di Home Assistant. Se
+  // l'entita' e' stata ritirata quella finestra viene su vuota, e sembra un
+  // guasto della card: meglio non aprirla.
+  const Card = definite["nexus-fotovoltaico-card"];
+  const scheda = Object.create(Card.prototype);
+  scheda._hass = { states: { "sensor.viva": { entity_id: "sensor.viva", state: "1283", attributes: {} } } };
+  scheda._entita = () => ({ produzione: "sensor.viva", giornaliera: "sensor.ritirata" });
+  const aperte = [];
+  scheda.dispatchEvent = (evento) => aperte.push(evento.detail.entityId);
+
+  scheda._apri("produzione");
+  v("voce viva: la finestra informazioni si apre", aperte.length === 1 && aperte[0] === "sensor.viva");
+  scheda._apri("giornaliera");
+  v("voce ritirata: non si apre niente", aperte.length === 1);
+  scheda._apri("batteria");
+  v("voce non configurata: non si apre niente", aperte.length === 1);
+}
 v("proposta di configurazione dal selettore", definite["nexus-fotovoltaico-card"].getStubConfig(hass).entity === "sensor.mia_mappa");
 
 console.log("\n4. Fotovoltaico");

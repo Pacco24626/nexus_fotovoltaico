@@ -71,6 +71,14 @@ di differenza) si propone la convenzione più comune, «positivo = immissione»:
 Da **Configura** si cambiano entità, convenzioni e **fondo scala** delle animazioni
 (predefinito 3000 W). Se rinomini un'entità collegata, il collegamento si aggiorna da solo.
 
+Se invece un'entità **sparisce** — dalla V0.8.63 il gateway Nexus-T ritira le entità
+dell'energia quando il modulo viene spento, e se ne vanno tutte e nove insieme — Home
+Assistant apre un avviso in **Impostazioni → Sistema → Riparazioni** che dice quali voci
+sono rimaste senza entità. Non viene sganciato niente da solo: se le entità tornano il
+collegamento è ancora al suo posto e l'avviso si chiude da sé. Un'entità che hai
+**disabilitato tu** resta nel registro e non fa scattare nulla: è una tua scelta, non una
+sparizione.
+
 ## Prove
 
 ```bash

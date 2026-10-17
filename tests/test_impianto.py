@@ -40,6 +40,11 @@ def prepara(entita=None, opzioni=None, data_extra=None):
     hass.stati.imposta(f"{FV}produzione_giornaliera", "0")
     hass.stati.imposta(f"{FV}potenza_accumulo_batteria", "0")
     hass.stati.imposta("light.salotto", "off")
+    # In Home Assistant un'entita' MQTT ha anche una voce nel registro: e' da li'
+    # che si capisce se e' stata ritirata davvero o se semplicemente non ha
+    # ancora uno stato.
+    for entity_id in hass.stati.async_entity_ids():
+        hass.registro.aggiungi(entity_id, "mqtt")
     data = {"entita": dict(entita or ENTITA), **(data_extra or {})}
     return hass, Entry(data, options=opzioni, title="Fotovoltaico", entry_id="fv1")
 
@@ -138,6 +143,81 @@ async def main():
     for s in (mappa, auto, rete):
         s.rimuovi()
     b.v("nessun ascoltatore resta attaccato", not hass.stati.ascoltatori and not hass.bus.ascoltatori and not impianto._ascoltatori)
+
+    b.sezione("Entita' ritirate dal gateway")
+    # Dalla V0.8.63 il gateway ritira le entita' dell'energia quando il modulo
+    # viene spento: prima restavano in Home Assistant per sempre, ferme
+    # sull'ultimo valore. Qui spariscono tutte e nove insieme, non una parte:
+    # l'elenco pero' sta nella NOSTRA voce di configurazione, e continuerebbe a
+    # puntare al vuoto senza dire niente a nessuno.
+    hass, entry = prepara()
+    impianto = Impianto(hass, entry)
+    await impianto.async_start()
+    b.v("impianto intero: nessun avviso", not hass.avvisi.aperti)
+
+    hass.registro.async_remove(ENTITA["giornaliera"])
+    hass.bus.spara(finto_ha.EVENT_ENTITY_REGISTRY_UPDATED,
+                   {"action": "remove", "entity_id": ENTITA["giornaliera"]})
+    aperti = list(hass.avvisi.aperti.items())
+    b.v("entita' ritirata: si apre un avviso di riparazione", len(aperti) == 1)
+    dati = aperti[0][1] if aperti else {}
+    b.v("l'avviso dice quale voce, di quale impianto, ed e' un avvertimento",
+        dati.get("translation_key") == "entita_sparite"
+        and dati.get("translation_placeholders", {}).get("voci") == "giornaliera"
+        and dati.get("translation_placeholders", {}).get("nome") == "Fotovoltaico"
+        and dati.get("severity") == "warning"
+        and dati.get("is_fixable") is False)
+    b.v("ma la configurazione non si sgancia da sola: decide chi ha installato",
+        impianto.entita.get("giornaliera") == ENTITA["giornaliera"])
+
+    hass.registro.aggiungi(ENTITA["giornaliera"], "mqtt")
+    hass.bus.spara(finto_ha.EVENT_ENTITY_REGISTRY_UPDATED,
+                   {"action": "create", "entity_id": ENTITA["giornaliera"]})
+    b.v("entita' tornata: l'avviso si chiude da solo", not hass.avvisi.aperti)
+
+    # Il modulo energia spento le porta via tutte insieme, obbligatoria compresa.
+    # Formula unica: un avviso solo che le elenca, senza casi speciali.
+    hass, entry = prepara()
+    tutte = Impianto(hass, entry)
+    await tutte.async_start()
+    for entity_id in list(ENTITA.values()):
+        hass.registro.async_remove(entity_id)
+    hass.bus.spara(finto_ha.EVENT_ENTITY_REGISTRY_UPDATED,
+                   {"action": "remove", "entity_id": ENTITA["produzione"]})
+    dati = list(hass.avvisi.aperti.values())[0] if hass.avvisi.aperti else {}
+    b.v("modulo energia spento: un avviso solo, con dentro tutte le voci",
+        len(hass.avvisi.aperti) == 1
+        and dati.get("translation_placeholders", {}).get("voci")
+        == ", ".join(sorted(ENTITA)))
+
+    # Controllo che discrimina: senza STATO ma nel registro non e' una
+    # sparizione. All'avvio capita di continuo, MQTT che non e' ancora pronto.
+    hass, entry = prepara()
+    hass.stati._stati.pop(ENTITA["consumo"], None)
+    senza_stato = Impianto(hass, entry)
+    await senza_stato.async_start()
+    b.v("senza stato ma nel registro: nessun avviso", not hass.avvisi.aperti)
+
+    # Il ritiro puo' essere successo mentre Home Assistant era spento.
+    hass, entry = prepara()
+    hass.registro.async_remove(ENTITA["consumo"])
+    spenta = Impianto(hass, entry)
+    await spenta.async_start()
+    b.v("sparita a Home Assistant spento: l'avviso c'e' lo stesso",
+        len(hass.avvisi.aperti) == 1)
+
+    # Controllo di sanita': un rinomino non e' una sparizione.
+    hass, entry = prepara()
+    rinominata = Impianto(hass, entry)
+    await rinominata.async_start()
+    hass.registro.entities.pop(ENTITA["consumo"], None)
+    hass.registro.aggiungi("sensor.consumo_nuovo", "mqtt")
+    hass.bus.spara(finto_ha.EVENT_ENTITY_REGISTRY_UPDATED,
+                   {"action": "update", "entity_id": "sensor.consumo_nuovo",
+                    "old_entity_id": ENTITA["consumo"], "changes": {}})
+    b.v("rinomino: nessun avviso, e il collegamento segue il nome nuovo",
+        not hass.avvisi.aperti
+        and entry.options.get("entita", {}).get("consumo") == "sensor.consumo_nuovo")
 
 
 asyncio.run(main())

@@ -152,5 +152,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "entita_sparite": {
+      "title": "Grandezze non piu' pubblicate: {nome}",
+      "description": "Queste voci della configurazione puntano a entita' che non esistono piu': **{voci}**.\n\nSuccede quando il gateway smette di pubblicarle: per esempio quando il modulo energia viene spento, che le porta via tutte insieme.\n\nNon e' stato cambiato niente da solo. Apri le opzioni dell'integrazione e togli le voci che non servono piu', oppure collegale a un'altra entita'. Se le entita' tornano, il collegamento e' ancora al suo posto e questo avviso sparisce da se'."
+    }
   }
 }

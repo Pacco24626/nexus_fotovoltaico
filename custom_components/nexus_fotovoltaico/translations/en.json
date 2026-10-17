@@ -152,5 +152,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "entita_sparite": {
+      "title": "Values no longer published: {nome}",
+      "description": "These configured slots point to entities that no longer exist: **{voci}**.\n\nThis happens when the gateway stops publishing them - for example when the energy module is switched off, which takes them all away at once.\n\nNothing was changed automatically. Open the integration options and remove the slots you no longer need, or point them at another entity. If the entities come back, the link is still in place and this issue clears itself."
+    }
   }
 }
